@@ -1,13 +1,16 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/naldeco98/YourTicket/cmd/api/router"
+)
 
 func main() {
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	r.Run("localhost:8080")
+	routes := router.NewRouter(r)
+	routes.MapRoutes()
+
+	if err := r.Run("localhost:8080"); err != nil {
+		panic(err)
+	}
 }
