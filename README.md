@@ -9,4 +9,4 @@
  - __Reservar a una clase__: Un usuario reserva a una clase, eligiendo fecha y hora
 ***
 ### Diagrama DER:
-![DER](docs/resources/YourTicket_v01-2022-02-24.png)
+![DER](docs/resources/database_diagram.png)
