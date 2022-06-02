@@ -1,4 +1,4 @@
-# YourTicket v0.0.1-a
+# YourTicket v0.0.1
 ## App para reservar clases en diferentes gimnasios.
 ***
 ### Requerimientos:
