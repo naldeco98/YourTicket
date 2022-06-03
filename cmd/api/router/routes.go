@@ -44,6 +44,8 @@ func (r *router) buildUsersRoutes() {
 	service := users.NewService(repo)
 	handler := handler.NewHandler(service)
 	{
-		u.POST("", handler.Register())
+		u.POST("", handler.Post())
+		u.GET(":id", handler.GetById())
+		u.GET("", handler.GetAll())
 	}
 }
