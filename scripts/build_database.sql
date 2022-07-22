@@ -2,7 +2,6 @@ CREATE DATABASE IF NOT EXISTS `testYT`;
 
 USE `testYT`;
 
-
 DROP TABLE IF EXISTS `roles`;
 
 CREATE TABLE `roles`(
@@ -10,6 +9,7 @@ CREATE TABLE `roles`(
     `role` VARCHAR(5) NOT NULL,
     `create_ticket` TINYINT(1) NOT NULL,
     `delete_ticket` TINYINT(1) NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT current_timestamp,
     PRIMARY KEY (`id`),
     UNIQUE KEY `id_UNIQUE` (`id`)
 );
@@ -21,7 +21,7 @@ CREATE TABLE `gyms`(
     `id` INT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
     `address` LONGTEXT NOT NULL,
-    `created_at` DATETIME NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT current_timestamp,
     PRIMARY KEY (`id`),
     UNIQUE KEY `id_UNIQUE` (`id`)
 );
@@ -32,6 +32,7 @@ CREATE TABLE `classes`(
     `id` INT NOT NULL AUTO_INCREMENT,
     `type` VARCHAR(255) NOT NULL,
     `class_date` DATETIME NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT current_timestamp,
     PRIMARY KEY (`id`),
     UNIQUE KEY `id_UNIQUE` (`id`)
 );
@@ -40,11 +41,11 @@ DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE `users`(
     `id` INT NOT NULL AUTO_INCREMENT,
-    `username` VARCHAR(255) NOT NULL,
+    `username` VARCHAR(255) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL,
     `role_id` INT NOT NULL,
     `gym_id` INT NOT NULL,
-    `created_at` DATETIME NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT current_timestamp,
     PRIMARY KEY (`id`),
     UNIQUE KEY `id_UNIQUE` (`id`),
     KEY `fk_users_1_idx` (`role_id`),
@@ -61,6 +62,7 @@ CREATE TABLE `tickets`(
     `gym_id` INT NOT NULL,
     `class_id` INT NOT NULL,
     `reservation` DATETIME NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT current_timestamp,
     PRIMARY KEY (`id`),
     UNIQUE KEY `id_UNIQUE` (`id`),
     KEY `fk_user_id` (`user_id`),
