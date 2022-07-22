@@ -13,23 +13,32 @@ type User struct {
 	user users.Service
 }
 
+type requestUser struct {
+	Id       int    `json:"-"`
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	RoleId   int    `json:"role_id,omitempty"`
+	GymId    int    `json:"gym_id,omitempty"`
+}
+
 func NewHandler(u users.Service) *User {
 	return &User{user: u}
 }
 
 func (u *User) Post() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var user domain.User
-		if err := c.ShouldBindJSON(&user); err != nil {
+		var req requestUser
+		if err := c.ShouldBindJSON(&req); err != nil {
 			web.Failure(c, 400, err.Error())
 			return
 		}
-		id, err := u.user.Create(c, &user)
+		id, err := u.user.Create(c, req.Username, req.Password, req.RoleId, req.GymId)
 		if err != nil || id == 0 {
-			web.Failure(c, 409, "username already used")
+			web.Failure(c, 409, err.Error())
 			return
 		}
-		web.Success(c, 201, id)
+		req.Id = id
+		web.Success(c, 201, req)
 	}
 }
 
@@ -59,28 +68,28 @@ func (u *User) GetAll() gin.HandlerFunc {
 	}
 }
 
-func (u *User) Update() gin.HandlerFunc {
-	type UserUpdate struct {
-		Id       int    `json:"id,omitempty"`
-		Username string `json:"username"`
-		Password string `json:"password"`
-		RoleId   int    `json:"role_id"`
-		GymId    int    `json:"gym_id"`
-	}
+func (u *User) Put() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var user UserUpdate
+		var (
+			user domain.User
+			err  error
+		)
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			web.Failure(c, 400, "wrong id")
 		}
 		user.Id = id
-		if err := c.ShouldBindJSON(&user); err != nil {
+		if err = c.ShouldBindJSON(&user); err != nil {
 			web.Failure(c, 400, err.Error())
 			return
 		}
-		userUpdated, err := u.user.Update(c, &user)
+		if err = web.VerifyEmptyFields(user); err != nil {
+			web.Failure(c, 422, err.Error())
+			return
+		}
+		userUpdated, err := u.user.Update(c, user)
 		if err != nil {
-			web.Failure(c, 404, err.Error())
+			web.Failure(c, 409, err.Error())
 			return
 		}
 		web.Success(c, 200, userUpdated)

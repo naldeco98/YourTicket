@@ -47,5 +47,6 @@ func (r *router) buildUsersRoutes() {
 		u.POST("", handler.Post())
 		u.GET(":id", handler.GetById())
 		u.GET("", handler.GetAll())
+		u.PUT(":id", handler.Put())
 	}
 }

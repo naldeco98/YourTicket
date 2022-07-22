@@ -2,7 +2,7 @@ package users
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	"github.com/naldeco98/YourTicket/internal/domain"
 )
@@ -18,7 +18,7 @@ type Service interface {
 		If the user exists, return an error
 		If the user does not exist, create a new user
 	*/
-	Create(ctx context.Context, user *domain.User) (int, error)
+	Create(ctx context.Context, username, password string, roleId, gymId int) (int, error)
 	/*
 		GetById: returns a user by id
 
@@ -48,7 +48,7 @@ type Service interface {
 		If the user does not exist, return an error
 		If the user exists, update the user
 	*/
-	Update(ctx context.Context, user *domain.User) (domain.User, error)
+	Update(ctx context.Context, user domain.User) (domain.User, error)
 }
 type service struct {
 	r Repository
@@ -60,17 +60,22 @@ func NewService(r Repository) Service {
 	return &service{r: r}
 }
 
-func (s *service) Create(ctx context.Context, user *domain.User) (int, error) {
+func (s *service) Create(ctx context.Context, username, password string, roleId, gymId int) (int, error) {
 	var (
 		err error
 		id  int
 	)
-	id, err = s.r.LookByUsername(user.Username)
+	id, err = s.r.LookByUsername(username)
 	if id != 0 {
 		return 0, err
 	}
-	user.CreatedAt = time.Now()
-	id, err = s.r.Create(user)
+	newUser := domain.User{
+		Username: username,
+		Password: password,
+		RoleId:   roleId,
+		GymId:    gymId,
+	}
+	id, err = s.r.Create(&newUser)
 	if err != nil {
 		return 0, err
 	}
@@ -102,24 +107,25 @@ func (s *service) GetAll(ctx context.Context) ([]domain.User, error) {
 	return users, nil
 }
 
-func (s *service) Update(ctx context.Context, user *domain.User) (domain.User, error) {
+func (s *service) Update(ctx context.Context, update domain.User) (domain.User, error) {
 	var (
 		err error
 		id  int
 	)
-	id, err = s.r.LookByUsername(user.Username)
-	if err != nil || id != 0 {
-		return domain.User{}, err
-	}
-	user, err = s.r.ReadByID(*user.Id)
+	user, err := s.r.ReadByID(update.Id)
 	if err != nil {
 		return domain.User{}, err
 	}
-	user.Username = user.Username
-	user.RoleId = user.RoleId
-	user.GymId = user.GymId
+	id, _ = s.r.LookByUsername(update.Username)
+	if id != 0 {
+		return domain.User{}, fmt.Errorf("user with username %s already exists", update.Username)
+	}
+	user.Username = update.Username
+	user.Password = update.Password
+	user.RoleId = update.RoleId
+	user.GymId = update.GymId
 	if err = s.r.Update(user); err != nil {
 		return domain.User{}, err
 	}
-	return *user, nil
+	return user, nil
 }

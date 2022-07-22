@@ -7,17 +7,19 @@ import (
 )
 
 const (
-	CREATE          = `INSERT INTO users (username, password, role_id, gym_id, created_at) VALUES (?, ?, ?, ?, ?);`
+	CREATE          = `INSERT INTO users (username, password, role_id, gym_id) VALUES (?, ?, ?, ?);`
 	READ            = `SELECT id, username, role_id, gym_id, created_at FROM users WHERE id = ?;`
 	LOOKFORUSERNAME = `SELECT id FROM users WHERE username = ?;`
 	READALL         = `SELECT id, username, role_id, gym_id, created_at FROM users;`
+	UPDATE          = `UPDATE users SET username = ?, password = ?, role_id = ?, gym_id = ? WHERE id = ?;`
 )
 
 type Repository interface {
-	Create(u *domain.User) (int, error)
+	Create(user *domain.User) (int, error)
 	LookByUsername(username string) (int, error)
 	ReadByID(id int) (domain.User, error)
 	ReadAll() ([]domain.User, error)
+	Update(user domain.User) error
 }
 
 type repository struct {
@@ -29,7 +31,7 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r *repository) Create(user *domain.User) (int, error) {
-	res, err := r.db.Exec(CREATE, user.Username, user.Password, user.RoleId, user.GymId, user.CreatedAt)
+	res, err := r.db.Exec(CREATE, user.Username, user.Password, user.RoleId, user.GymId)
 	if err != nil {
 		return 0, err
 	}
@@ -50,8 +52,10 @@ func (r *repository) LookByUsername(username string) (int, error) {
 }
 
 func (r *repository) ReadByID(id int) (domain.User, error) {
-	var err error
-	var user domain.User
+	var (
+		err  error
+		user domain.User
+	)
 	err = r.db.QueryRow(READ, id).Scan(&user.Id, &user.Username, &user.RoleId, &user.GymId, &user.CreatedAt)
 	if err != nil {
 		return user, err
@@ -77,4 +81,12 @@ func (r *repository) ReadAll() ([]domain.User, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func (r *repository) Update(user domain.User) error {
+	_, err := r.db.Exec(UPDATE, &user.Username, &user.Password, &user.RoleId, &user.GymId, &user.Id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
